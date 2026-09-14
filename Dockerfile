@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
     sqlite3 \
     libsqlite3-dev \
     libfreetype6-dev \
-    libjpeg62-turbo-dev
+    libjpeg62-turbo-dev \
+    dos2unix
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -61,12 +62,13 @@ RUN composer install --optimize-autoloader --no-dev
 RUN npm install
 RUN npm run build
 
-# Copy entrypoint script
+# Copy entrypoint script and convert line endings for Linux
 COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN dos2unix /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port 80
 EXPOSE 80
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["apache2-foreground"]
