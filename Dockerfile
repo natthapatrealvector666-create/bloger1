@@ -34,9 +34,11 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Unzip the large template file to avoid Git timeout limits
-RUN if [ -f "template.zip" ]; then \
-        unzip template.zip -d public/ && rm template.zip; \
+# Unzip the essential assets for the template
+RUN if [ -f "public/essential-assets.zip" ]; then \
+        mkdir -p public/materio-bootstrap-html-admin-template/assets && \
+        unzip public/essential-assets.zip -d public/materio-bootstrap-html-admin-template/assets/ && \
+        rm public/essential-assets.zip; \
     fi
 
 # Set Apache document root
