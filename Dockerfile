@@ -34,6 +34,11 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
+# Unzip the large template file to avoid Git timeout limits
+RUN if [ -f "template.zip" ]; then \
+        unzip template.zip -d public/ && rm template.zip; \
+    fi
+
 # Set Apache document root
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
