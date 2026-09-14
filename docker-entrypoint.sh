@@ -1,6 +1,11 @@
 #!/bin/bash
 
-# Ensure .env file exists so Laravel can store runtime configuration and APP_KEY
+# Ensure APP_KEY exists in environment
+if [ -z "$APP_KEY" ]; then
+    export APP_KEY="base64:dHWdRI0oYFUQ8zZoQNQzvNbXsGS2+WvBoRuA3KErEAk="
+fi
+
+# Ensure .env file exists so Laravel can store runtime configuration
 if [ ! -f /var/www/html/.env ]; then
     if [ -f /var/www/html/.env.example ]; then
         cp /var/www/html/.env.example /var/www/html/.env
@@ -27,9 +32,8 @@ if ! grep -q "DB_CONNECTION=" /var/www/html/.env; then
     echo "DB_CONNECTION=sqlite" >> /var/www/html/.env
 fi
 
-# Ensure APP_KEY exists in .env or environment
-if [ -z "$APP_KEY" ] || ! grep -q "APP_KEY=base64:" /var/www/html/.env; then
-    php artisan key:generate --force || true
+if ! grep -q "APP_KEY=" /var/www/html/.env; then
+    echo "APP_KEY=$APP_KEY" >> /var/www/html/.env
 fi
 
 # Run database migrations and seeders
