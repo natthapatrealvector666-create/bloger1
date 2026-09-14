@@ -431,7 +431,11 @@
 <footer>
     <div class="footer-inner">
         <div class="footer-brand"><i class="ri-quill-pen-line"></i> เขียนดี</div>
-        <small>AI ช่วยเริ่มต้น คุณช่วยเติมความหมาย</small>
+        <small style="color:rgba(255,255,255,.5)">AI ช่วยเริ่มต้น คุณช่วยเติมความหมาย</small>
+        <small style="color:rgba(255,255,255,.45);text-align:right">
+            Made by <strong style="color:rgba(255,255,255,.75)">Natthapat Srisonkram</strong><br>
+            Mubakru Technological Computer Business · <a href="tel:0640164043" style="color:rgba(255,255,255,.55);text-decoration:none;">064-016-4043</a>
+        </small>
     </div>
 </footer>
 
