@@ -10,13 +10,16 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     sqlite3 \
-    libsqlite3-dev
+    libsqlite3-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_sqlite mbstring exif pcntl bcmath gd
+# Configure and Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_sqlite mbstring exif pcntl bcmath gd
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
@@ -34,7 +37,7 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Unzip the essential assets for the template
+# Unzip essential assets if present
 RUN if [ -f "public/essential-assets.zip" ]; then \
         mkdir -p public/materio-bootstrap-html-admin-template/assets && \
         unzip public/essential-assets.zip -d public/materio-bootstrap-html-admin-template/assets/ && \
@@ -58,14 +61,12 @@ RUN composer install --optimize-autoloader --no-dev
 RUN npm install
 RUN npm run build
 
-# Create SQLite database and run migrations
-RUN touch database/database.sqlite
-RUN chown www-data:www-data database/database.sqlite
-RUN chmod 664 database/database.sqlite
-RUN php artisan migrate --force
-RUN php artisan db:seed --force
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port 80
 EXPOSE 80
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["apache2-foreground"]
