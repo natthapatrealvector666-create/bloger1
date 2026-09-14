@@ -20,8 +20,8 @@
     <header class="workspace-header shell d-flex justify-content-between align-items-center p-3 bg-white border-bottom shadow-sm">
         <a class="text-decoration-none fw-bold text-dark" href="{{ url('/workspace') }}">← กลับหน้าเขียนบทความ</a>
         <div>
-            <a href="{{ route('articles.export.pdf', $article->id) }}" class="btn btn-outline-danger me-2">ดาวน์โหลด PDF</a>
-            <a href="{{ route('articles.export.word', $article->id) }}" class="btn btn-outline-primary">ดาวน์โหลด Word</a>
+            <a href="{{ route('articles.export.pdf', ['article' => $article->id, 'session_id' => request()->query('session_id')]) }}" class="btn btn-outline-danger me-2">ดาวน์โหลด PDF</a>
+            <a href="{{ route('articles.export.word', ['article' => $article->id, 'session_id' => request()->query('session_id')]) }}" class="btn btn-outline-primary">ดาวน์โหลด Word</a>
         </div>
     </header>
     @endif

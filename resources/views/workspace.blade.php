@@ -30,7 +30,7 @@
                 showMessage('กรุณาบันทึกบทความก่อนดู Preview');
                 return;
             }
-            window.open('/articles/' + currentArticleId + '/preview', '_blank');
+            window.open('/articles/' + currentArticleId + '/preview?session_id=' + sessionId, '_blank');
         });
         const handleAiAction = async (action) => {
             const getTypeName = () => fields.type.options[fields.type.selectedIndex]?.text || '';

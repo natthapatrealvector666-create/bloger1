@@ -78,7 +78,7 @@ class ArticleController extends Controller
 
     private function sessionId(Request $request): string
     {
-        return (string) ($request->header('X-Session-Id') ?: $request->session()->getId());
+        return (string) ($request->header('X-Session-Id') ?: $request->query('session_id') ?: $request->session()->getId());
     }
 
     public function preview(Request $request, Article $article)
