@@ -4,116 +4,253 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $article->title ?: 'บทความ' }} | เขียนดี</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <meta name="description" content="{{ $article->excerpt ?: Str::limit(strip_tags($article->content), 160) }}">
+    <!-- Bootstrap 5 CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <!-- Remix Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Noto+Serif+Thai:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root { --primary: #7a5af8; --primary-light: #efeaff; }
         body {
-            background-color: #faf9f8;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+            background: #f8f9fc;
+            color: #374151;
         }
-        .public-article-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-            background: transparent;
+
+        /* Topbar */
+        .site-topbar {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 1.5rem;
+            text-align: center;
+        }
+        .topbar-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1e1b4b;
+        }
+        .brand-icon {
+            width: 32px; height: 32px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: .95rem;
+        }
+
+        /* Article layout */
+        .article-wrap {
+            max-width: 760px;
+            margin: 2.5rem auto;
+            padding: 0 1.25rem 5rem;
+        }
+        .article-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 3rem 3.5rem;
+            box-shadow: 0 4px 32px rgba(0,0,0,.06);
+        }
+        .article-kicker {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: .8rem;
+            font-weight: 700;
+            padding: .3rem .9rem;
+            border-radius: 50px;
+            margin-bottom: 1.5rem;
+            letter-spacing: .03em;
         }
         .article-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #1a1a1a;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-            text-align: center;
+            font-family: 'Noto Serif Thai', serif;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            color: #1e1b4b;
+            line-height: 1.25;
+            margin-bottom: 1.75rem;
+        }
+        .article-divider {
+            height: 3px;
+            width: 48px;
+            background: var(--primary);
+            border-radius: 50px;
+            margin-bottom: 1.75rem;
+            opacity: .45;
         }
         .article-meta {
-            text-align: center;
-            color: #6c757d;
-            font-size: 0.95rem;
-            margin-bottom: 3rem;
-            border-bottom: 1px solid #eaeaea;
-            padding-bottom: 2rem;
+            color: #9ca3af;
+            font-size: .85rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
         }
-        .article-meta span {
-            margin: 0 0.5rem;
+        .article-meta i { color: var(--primary); }
+        .export-bar {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
         }
-        .article-badge {
-            background: #e9ecef;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        .article-content {
-            font-size: 1.15rem;
-            line-height: 1.8;
-            color: #333;
-        }
-        .article-content p {
-            margin-bottom: 1.5rem;
-        }
-        .brand-header {
-            text-align: center;
-            padding: 2rem 0;
-            background: white;
-            border-bottom: 1px solid #eaeaea;
-        }
-        .brand-header a {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #000;
-            text-decoration: none;
-            letter-spacing: -0.5px;
-        }
-        .article-footer {
-            margin-top: 4rem;
-            padding-top: 2rem;
-            border-top: 1px solid #eaeaea;
-            text-align: center;
-        }
-        .btn-write {
-            display: inline-block;
-            background: #000;
-            color: #fff;
-            padding: 0.75rem 1.5rem;
+        .btn-export {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .4rem .95rem;
             border-radius: 8px;
-            text-decoration: none;
+            font-size: .82rem;
             font-weight: 600;
-            transition: all 0.2s;
+            text-decoration: none;
+            transition: all .2s;
         }
-        .btn-write:hover {
-            background: #333;
+        .btn-pdf { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+        .btn-pdf:hover { background: #dc2626; color: #fff; }
+        .btn-word { background: #eff6ff; color: #2563eb; border: 1px solid #93c5fd; }
+        .btn-word:hover { background: #2563eb; color: #fff; }
+
+        /* Content typography */
+        .article-body {
+            font-size: 1.1rem;
+            line-height: 1.95;
+            color: #374151;
+        }
+        .article-body h1,
+        .article-body h2,
+        .article-body h3 {
+            font-family: 'Noto Serif Thai', serif;
+            color: #1e1b4b;
+            margin-top: 2.25rem;
+            margin-bottom: .85rem;
+            line-height: 1.35;
+        }
+        .article-body h1 { font-size: 1.75rem; }
+        .article-body h2 { font-size: 1.4rem; }
+        .article-body h3 { font-size: 1.15rem; }
+        .article-body p { margin-bottom: 1.4rem; }
+        .article-body ul, .article-body ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.4rem;
+        }
+        .article-body li { margin-bottom: .5rem; }
+        .article-body blockquote {
+            border-left: 4px solid var(--primary);
+            padding: .75rem 1.25rem;
+            margin: 1.5rem 0;
+            background: var(--primary-light);
+            border-radius: 0 8px 8px 0;
+            color: #5b3fd1;
+            font-style: italic;
+        }
+        .article-body strong { color: #1e1b4b; }
+        .empty-content {
+            text-align: center;
+            padding: 3rem 0;
+            color: #9ca3af;
+        }
+        .empty-content i { font-size: 3rem; display: block; margin-bottom: .75rem; }
+
+        /* CTA footer */
+        .cta-section {
+            margin-top: 3rem;
+            padding-top: 2.5rem;
+            border-top: 1px solid #f3f4f6;
+            text-align: center;
+        }
+        .cta-section p { color: #6b7280; margin-bottom: 1rem; }
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            background: var(--primary);
             color: #fff;
+            padding: .65rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all .2s;
+            box-shadow: 0 4px 14px rgba(122,90,248,.3);
+        }
+        .btn-cta:hover {
+            background: #5b3fd1;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 640px) {
+            .article-card { padding: 1.75rem 1.25rem; }
         }
     </style>
 </head>
 <body>
-    <header class="brand-header">
-        <a href="{{ url('/') }}">
-            <span style="display:inline-block;background:#000;color:#fff;width:32px;height:32px;line-height:32px;border-radius:8px;margin-right:8px;">ข</span>เขียนดี
-        </a>
-    </header>
 
-    <main class="public-article-container">
+<header class="site-topbar">
+    <a href="{{ url('/') }}" class="topbar-brand">
+        <span class="brand-icon">ข</span> เขียนดี
+    </a>
+</header>
+
+<main class="article-wrap">
+    <div class="article-card">
+        @if($article->articleType)
+            <span class="article-kicker">
+                <i class="ri-folder-line"></i> {{ $article->articleType->name }}
+            </span>
+        @endif
+
         <h1 class="article-title">{{ $article->title ?: 'บทความไม่มีชื่อ' }}</h1>
-        
-        <div class="article-meta">
-            @if($article->articleType)
-                <span class="article-badge">{{ $article->articleType->name }}</span>
-            @endif
-            <span>เขียนเมื่อ {{ $article->updated_at->format('d M Y') }}</span>
-            <div style="margin-top: 1rem; display: flex; gap: 8px; justify-content: center;">
-                <a href="{{ route('articles.export.pdf', ['article' => $article->id]) }}" class="btn-write" style="background: #ef4444; padding: 0.4rem 1rem; font-size: 0.88rem;">📄 ดาวน์โหลด PDF</a>
-                <a href="{{ route('articles.export.word', ['article' => $article->id]) }}" class="btn-write" style="background: #2563eb; padding: 0.4rem 1rem; font-size: 0.88rem;">📝 ดาวน์โหลด Word</a>
-            </div>
-        </div>
-        
-        <article class="article-content">
-            {!! $article->content ?: '<p class="text-center" style="color:#999;font-style:italic;">ยังไม่มีเนื้อหา</p>' !!}
-        </article>
 
-        <div class="article-footer">
-            <p style="color:#666;margin-bottom:1rem;">อยากเขียนเรื่องราวของคุณเองบ้างไหม?</p>
-            <a href="{{ url('/workspace') }}" class="btn-write">เริ่มเขียนบทความของคุณ</a>
+        <div class="article-divider"></div>
+
+        <div class="article-meta">
+            <span><i class="ri-calendar-line"></i> {{ $article->updated_at->locale('th')->translatedFormat('d M Y') }}</span>
+            @if($article->excerpt)
+                <span style="color:#e5e7eb">|</span>
+                <span style="font-style:italic;color:#6b7280">{{ $article->excerpt }}</span>
+            @endif
         </div>
-    </main>
+
+        <div class="export-bar">
+            <a href="{{ route('articles.export.pdf', ['article' => $article->id]) }}"
+               class="btn-export btn-pdf">
+                <i class="ri-file-pdf-line"></i> ดาวน์โหลด PDF
+            </a>
+            <a href="{{ route('articles.export.word', ['article' => $article->id]) }}"
+               class="btn-export btn-word">
+                <i class="ri-file-word-line"></i> ดาวน์โหลด Word
+            </a>
+        </div>
+
+        <div class="article-body">
+            @if($article->content)
+                {!! $article->content !!}
+            @else
+                <div class="empty-content">
+                    <i class="ri-file-text-line"></i>
+                    <p>ยังไม่มีเนื้อหาบทความ</p>
+                </div>
+            @endif
+        </div>
+
+        <div class="cta-section">
+            <p>อยากเขียนเรื่องราวของคุณเองบ้างไหม?</p>
+            <a href="{{ url('/workspace') }}" class="btn-cta">
+                <i class="ri-quill-pen-line"></i> เริ่มเขียนบทความของคุณ
+            </a>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
