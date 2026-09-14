@@ -25,7 +25,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Install Node.js & npm (for Vite)
+# Install Node.js 20 & npm
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
@@ -35,38 +35,26 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer dependency definitions first for Docker layer caching
-COPY composer.json composer.lock ./
-
-# Install PHP dependencies
-RUN composer install --optimize-autoloader --no-dev --no-scripts
-
-# Copy package dependency definitions for layer caching
-COPY package.json package-lock.json* ./
-
-# Install Node dependencies
-RUN npm ci || npm install
-
 # Copy application files
 COPY . .
 
-# Unzip essential assets if present
-RUN if [ -f "public/essential-assets.zip" ]; then \
-        mkdir -p public/materio-bootstrap-html-admin-template/assets && \
-        unzip public/essential-assets.zip -d public/materio-bootstrap-html-admin-template/assets/ && \
-        rm public/essential-assets.zip; \
-    fi
+# Install PHP dependencies
+RUN composer install --optimize-autoloader --no-dev
 
-# Build Vite frontend assets
-RUN npm run build
+# Install Node dependencies & build frontend assets
+RUN npm install && npm run build
 
-# Remove node_modules after build to minimize memory and disk footprint
-RUN rm -rf node_modules
-
-# Set Apache document root
+# Set Apache document root to public
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Configure Apache AllowOverride All for Laravel .htaccess
+RUN echo '<Directory /var/www/html/public>\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>' >> /etc/apache2/apache2.conf
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
