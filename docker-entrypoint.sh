@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Ensure APP_KEY exists in environment
-if [ -z "$APP_KEY" ]; then
-    export APP_KEY="base64:dHWdRI0oYFUQ8zZoQNQzvNbXsGS2+WvBoRuA3KErEAk="
+# Ensure APP_KEY exists in environment and is a valid 32-byte base64 key
+if [ -z "$APP_KEY" ] || [ ${#APP_KEY} -lt 40 ]; then
+    export APP_KEY="base64:yYbNyCWk4vdkKN40zw5HOwQnuSom57EGmFyKFxyal3Q="
 fi
 
 # Ensure .env file exists so Laravel can store runtime configuration
