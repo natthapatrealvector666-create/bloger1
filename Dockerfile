@@ -38,10 +38,6 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Extract essential template assets
-RUN mkdir -p /var/www/html/public/materio-bootstrap-html-admin-template/assets \
-    && unzip -q /var/www/html/public/essential-assets.zip -d /var/www/html/public/materio-bootstrap-html-admin-template/assets
-
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev
 
