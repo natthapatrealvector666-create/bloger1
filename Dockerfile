@@ -35,6 +35,18 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
+# Copy composer dependency definitions first for Docker layer caching
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies
+RUN composer install --optimize-autoloader --no-dev --no-scripts
+
+# Copy package dependency definitions for layer caching
+COPY package.json package-lock.json* ./
+
+# Install Node dependencies
+RUN npm ci || npm install
+
 # Copy application files
 COPY . .
 
@@ -45,6 +57,12 @@ RUN if [ -f "public/essential-assets.zip" ]; then \
         rm public/essential-assets.zip; \
     fi
 
+# Build Vite frontend assets
+RUN npm run build
+
+# Remove node_modules after build to minimize memory and disk footprint
+RUN rm -rf node_modules
+
 # Set Apache document root
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
@@ -54,13 +72,6 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
-
-# Install PHP dependencies
-RUN composer install --optimize-autoloader --no-dev
-
-# Install Node dependencies and build assets
-RUN npm install
-RUN npm run build
 
 # Copy entrypoint script and convert line endings for Linux
 COPY docker-entrypoint.sh /usr/local/bin/
