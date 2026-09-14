@@ -25,8 +25,8 @@ class ArticleTypeSeeder extends Seeder
 
         foreach ($types as [$name, $description, $tone]) {
             ArticleType::updateOrCreate(
-                ['slug' => Str::slug($name)],
-                ['name' => $name, 'description' => $description, 'tone' => $tone, 'is_active' => true],
+                ['name' => $name],
+                ['slug' => Str::slug($name) ?: 'type-'.Str::slug(urlencode($name)), 'description' => $description, 'tone' => $tone, 'is_active' => true],
             );
         }
     }

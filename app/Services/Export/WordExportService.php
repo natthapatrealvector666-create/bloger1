@@ -13,27 +13,36 @@ class WordExportService
     {
         $phpWord = new PhpWord();
         
-        // Setup font styles for Thai
+        // Setup default font styles
         $phpWord->setDefaultFontName('Sarabun');
-        $phpWord->setDefaultFontSize(16);
+        $phpWord->setDefaultFontSize(14);
         
         $section = $phpWord->addSection();
         
-        // Title
-        $section->addText($article->title, ['name' => 'Sarabun', 'size' => 20, 'bold' => true], ['alignment' => 'center']);
-        $section->addTextBreak(2);
+        $title = $article->title ?: 'บทความไม่มีชื่อ';
         
-        // Content (converting simple HTML to Word, replacing <br> and <p>)
-        $html = "<h1>" . htmlspecialchars($article->title) . "</h1><br/>" . $article->content;
+        // Add Title
+        $section->addText($title, ['name' => 'Sarabun', 'size' => 20, 'bold' => true], ['alignment' => 'center']);
+        $section->addTextBreak(1);
         
-        Html::addHtml($section, $html, false, false);
+        // Content
+        $contentHtml = $article->content ?: '<p>ไม่มีเนื้อหา</p>';
         
-        $fileName = $article->slug . '.docx';
+        try {
+            Html::addHtml($section, '<div>' . $contentHtml . '</div>', false, false);
+        } catch (\Exception $e) {
+            $section->addText(strip_tags($contentHtml));
+        }
+        
+        $cleanTitle = trim(preg_replace('/[\\\\\/:\*\?"<>\|]/', '', $article->title ?? ''));
+        $fileName = ($cleanTitle ?: 'article-' . $article->id) . '.docx';
         $tempFile = tempnam(sys_get_temp_dir(), 'phpword');
         
         $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
         $objWriter->save($tempFile);
         
-        return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
+        return response()->download($tempFile, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ])->deleteFileAfterSend(true);
     }
 }
