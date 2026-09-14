@@ -1,6 +1,15 @@
 #!/bin/bash
 
-# Create required directories
+# Ensure .env file exists so Laravel can store runtime configuration and APP_KEY
+if [ ! -f /var/www/html/.env ]; then
+    if [ -f /var/www/html/.env.example ]; then
+        cp /var/www/html/.env.example /var/www/html/.env
+    else
+        touch /var/www/html/.env
+    fi
+fi
+
+# Ensure required directories exist
 mkdir -p /var/www/html/storage/fonts \
          /var/www/html/storage/framework/views \
          /var/www/html/storage/framework/cache \
@@ -13,8 +22,13 @@ if [ ! -f /var/www/html/database/database.sqlite ]; then
     touch /var/www/html/database/database.sqlite
 fi
 
-# Ensure APP_KEY exists
-if [ -z "$APP_KEY" ]; then
+# Ensure DB_CONNECTION and DB_DATABASE are set in .env
+if ! grep -q "DB_CONNECTION=" /var/www/html/.env; then
+    echo "DB_CONNECTION=sqlite" >> /var/www/html/.env
+fi
+
+# Ensure APP_KEY exists in .env or environment
+if [ -z "$APP_KEY" ] || ! grep -q "APP_KEY=base64:" /var/www/html/.env; then
     php artisan key:generate --force || true
 fi
 
@@ -22,9 +36,10 @@ fi
 php artisan migrate --force || true
 php artisan db:seed --force || true
 
-# Re-apply ownership and permissions so www-data owns everything
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+# Set permissions for www-data
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database /var/www/html/.env
 chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+chmod 666 /var/www/html/.env
 
 # Clear and optimize Laravel caches
 php artisan config:clear || true
